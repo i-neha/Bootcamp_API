@@ -8,22 +8,17 @@ const Bootcamp = require("../models/Bootcamp");
 // @route     GET /api/v1/bootcamps/:bootcampId/courses
 // @access    Public
 exports.getCourses = asyncHandler(async (req, res, next) => {
-  let query;
   if (req.params.bootcampId) {
-    query = Course.find({ bootcamp: req.params.bootcampId });
-  } else {
-    query = Course.find().populate({
-      path: "bootcamp",
-      select: "name description",
-    });
-  }
+    const courses = await Course.find({ bootcamp: req.params.bootcampId });
 
-  const courses = await query;
-  res.status(200).json({
-    success: true,
-    count: courses.length,
-    data: courses,
-  });
+    return res.status(200).json({
+      success: true,
+      count: courses.length,
+      data: courses,
+    });
+  } else {
+    res.status(200).json(res.advancedResults);
+  }
 });
 
 // @desc      Get single course
@@ -53,7 +48,7 @@ exports.getCourse = asyncHandler(async (req, res, next) => {
 // @access    Private
 exports.addCourse = asyncHandler(async (req, res, next) => {
   req.body.bootcamp = req.params.bootcampId;
-  //req.body.user = req.user.id;
+  req.body.user = req.user.id;
 
   const bootcamp = await Bootcamp.findById(req.params.bootcampId);
 
@@ -64,7 +59,7 @@ exports.addCourse = asyncHandler(async (req, res, next) => {
     );
   }
 
-  /* // Make sure user is bootcamp owner
+  // Make sure user is bootcamp owner
   if (bootcamp.user.toString() !== req.user.id && req.user.role !== "admin") {
     return next(
       new ErrorResponse(
@@ -72,7 +67,7 @@ exports.addCourse = asyncHandler(async (req, res, next) => {
         401
       )
     );
-  } */
+  }
 
   const course = await Course.create(req.body);
 
@@ -95,7 +90,7 @@ exports.updateCourse = asyncHandler(async (req, res, next) => {
     );
   }
 
-  /* // Make sure user is course owner
+  // Make sure user is course owner
   if (course.user.toString() !== req.user.id && req.user.role !== "admin") {
     return next(
       new ErrorResponse(
@@ -103,7 +98,7 @@ exports.updateCourse = asyncHandler(async (req, res, next) => {
         401
       )
     );
-  } */
+  }
 
   course = await Course.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
@@ -129,7 +124,7 @@ exports.deleteCourse = asyncHandler(async (req, res, next) => {
     );
   }
 
-  /* // Make sure user is course owner
+  // Make sure user is course owner
   if (course.user.toString() !== req.user.id && req.user.role !== "admin") {
     return next(
       new ErrorResponse(
@@ -137,7 +132,7 @@ exports.deleteCourse = asyncHandler(async (req, res, next) => {
         401
       )
     );
-  } */
+  }
 
   await course.deleteOne();
 
